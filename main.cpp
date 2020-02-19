@@ -12,7 +12,16 @@ void ingresar_Registro();
 void reporte_Registro();
 void editar_Registro();
 
-struct registroStruct{
+struct estudiante{
+    int tipo;
+    char apellido1[21];
+    char apellido2[21];
+    char nombre[21];
+    char codigo[11];
+    int nota;
+};
+
+struct profesor{
     int tipo;
     char apellido1[21];
     char apellido2[21];
@@ -76,72 +85,90 @@ void menu_Inicial(){
 }
 
 void editar_Registro(){
-    registroStruct registro;
+    estudiante auxRecorrer;
+    estudiante estudianteStruct;
+    profesor profesorStruct;
     FILE* archivo;
-    char codigo[11];
-    bool existe = false;
 
     char apellido1[21], apellido2[21], nombre[21];
-    int tipo, seccion;
+    int tipo, seccion, existe = 0;
+    string codigo;
 
     if ((archivo = fopen("alumnos_201700988.bin","rb+")) == NULL){
            cout<<"Error al abrir el archivo"<<endl;
            exit(1);
     }
 
-    cout<<"Ingresar codigo: ";
-    cin>>codigo;
-    fread(&registro, sizeof(registroStruct), 1, archivo);
+    cout<<"Ingrese el codigo del registro a editar: ";
+    getline(cin,codigo);
+
+    fread(&auxRecorrer, sizeof(estudiante), 1, archivo);
     while(!feof(archivo)){
-        cout<<"codigo ingresado: "<<codigo<<endl;
-        cout<<"codigo evaluar: "<<registro.codigo<<endl;
-        if(codigo==registro.codigo){
-            cout<<"tipo: "<< registro.tipo<<endl;
-            cout<<"apellido1: "<<registro.apellido1<<endl;
-            cout<<"apellido2: "<<registro.apellido2<<endl;
-            cout<<"nombre: "<<registro.nombre<<endl;
-            cout<<"codigo: "<<registro.codigo<<endl;
-            cout<<"seccion: "<<registro.seccion<<endl;
+
+        if(codigo==auxRecorrer.codigo){
             cout<<"-------------------------------------------"<<endl;
-            cout<<"Ingresar actualizacion: "<<endl;
-            cout<<"tipo: ";
-            cin>>tipo;
-            registro.tipo = tipo;
+
             cout<<"apellido 1: ";
             cin>>apellido1;
-            strcpy(registro.apellido1,apellido1);
             cout<<"apellido 2: ";
             cin>>apellido2;
-            strcpy(registro.apellido2,apellido2);
             cout<<"nombre: ";
             cin>>nombre;
-            strcpy(registro.nombre, nombre);
-            cout<<"seccion: ";
-            cin>>seccion;
-            registro.seccion = seccion;
 
-            int pos=ftell(archivo) - sizeof(registroStruct);
-            fseek(archivo, pos, SEEK_SET);
-            fwrite(&registro, sizeof(registroStruct),1,archivo);
+            if(auxRecorrer.tipo==1){
+                cout<<"seccion: ";
+            }else if(auxRecorrer.tipo==0){
+                cout<<"nota: ";
+            }
+            cin>>seccion;
+
+            int pos=ftell(archivo)-sizeof(estudiante);
+            fseek(archivo,pos,SEEK_SET);
+
+
+            if(auxRecorrer.tipo==1){
+                profesorStruct.tipo = auxRecorrer.tipo;
+                strcpy(profesorStruct.apellido1, apellido1);
+                strcpy(profesorStruct.apellido2, apellido2);
+                strcpy(profesorStruct.nombre, nombre);
+                strcpy(profesorStruct.codigo, auxRecorrer.codigo);
+                profesorStruct.seccion =  seccion;
+
+                fwrite(&profesorStruct, sizeof(profesor),1,archivo);
+            }else if(auxRecorrer.tipo==0){
+                estudianteStruct.tipo = auxRecorrer.tipo;
+                strcpy(estudianteStruct.apellido1,  apellido1);
+                strcpy(estudianteStruct.apellido2, apellido2);
+                strcpy(estudianteStruct.nombre, nombre);
+                strcpy(estudianteStruct.codigo, auxRecorrer.codigo);
+                estudianteStruct.nota = seccion;
+
+                fwrite(&estudianteStruct, sizeof(estudiante),1,archivo);
+            }
+
             cout<<"-------------------------------------------"<<endl;
-            cout<<"Se modifico el registro.";
-            cout<<"-------------------------------------------"<<endl;
-            existe = true;
+            printf("Registro modificado.");
+            existe = 1;
             break;
         }
 
-        fread(&registro, sizeof(registroStruct), 1, archivo);
+        fread(&auxRecorrer, sizeof(estudiante), 1, archivo);
     }
 
-    if(existe==false){
-        cout<<"No existe el registro."<<endl;
+    if (existe==0){
+        cout<<"-------------------------------------------"<<endl;
+        printf("No existe registro con ese codigo.");
     }
 
+    getchar();
     fclose(archivo);
+
+
 }
 
 void ingresar_Registro(){
-    registroStruct registro;
+    estudiante estudianteStruct;
+    profesor profesorStruct;
     FILE* archivo;
 
     char apellido1[21], apellido2[21], nombre[21], codigo[11];
@@ -154,31 +181,51 @@ void ingresar_Registro(){
 
     cout<<"Ingrese los datos del registro: "<<endl;
     cout<<"tipo: ";
-    cin>>tipo;
-    registro.tipo = tipo;
+    cin>>tipo;    
     cout<<"apellido 1: ";
-    cin>>apellido1;
-    strcpy(registro.apellido1,apellido1);
+    cin>>apellido1;    
     cout<<"apellido 2: ";
-    cin>>apellido2;
-    strcpy(registro.apellido2,apellido2);
+    cin>>apellido2;    
     cout<<"nombre: ";
-    cin>>nombre;
-    strcpy(registro.nombre, nombre);
+    cin>>nombre;    
     cout<<"codigo: ";
-    cin>>codigo;
-    strcpy(registro.codigo, codigo);
-    cout<<"seccion: ";
-    cin>>seccion;
-    registro.seccion = seccion;
+    cin>>codigo;    
 
-    fseek(archivo,0,SEEK_END);
-    fwrite(&registro, sizeof(registroStruct),1,archivo);
+    if(tipo==1){
+        cout<<"seccion: ";
+    }else if(tipo==0){
+        cout<<"nota: ";
+    }
+    cin>>seccion;    
+
+    if(tipo==1){
+        profesorStruct.tipo = tipo;
+        strcpy(profesorStruct.apellido1, apellido1);
+        strcpy(profesorStruct.apellido2, apellido2);
+        strcpy(profesorStruct.nombre, nombre);
+        strcpy(profesorStruct.codigo, codigo);
+        profesorStruct.seccion =  seccion;
+
+        fseek(archivo,0,SEEK_END);
+        fwrite(&profesorStruct, sizeof(profesor),1,archivo);
+    }else if(tipo==0){
+        estudianteStruct.tipo = tipo;
+        strcpy(estudianteStruct.apellido1,  apellido1);
+        strcpy(estudianteStruct.apellido2, apellido2);
+        strcpy(estudianteStruct.nombre, nombre);
+        strcpy(estudianteStruct.codigo, codigo);
+        estudianteStruct.nota = seccion;
+
+        fseek(archivo,0,SEEK_END);
+        fwrite(&estudianteStruct, sizeof(estudiante),1,archivo);
+    }
+
+    getchar();
     fclose(archivo);
 }
 
 void reporte_Registro(){
-    registroStruct registro;
+    estudiante estudianteStruct;
     FILE* archivo;
 
     if ((archivo = fopen("alumnos_201700988.bin","rb")) == NULL){
@@ -186,18 +233,22 @@ void reporte_Registro(){
            exit(1);
     }
 
-    fread(&registro, sizeof(registroStruct), 1, archivo);
+    fread(&estudianteStruct, sizeof(estudiante), 1, archivo);
 
     while(!feof(archivo)){
-        cout<<"tipo: "<< registro.tipo<<endl;
-        cout<<"apellido1: "<<registro.apellido1<<endl;
-        cout<<"apellido2: "<<registro.apellido2<<endl;
-        cout<<"nombre: "<<registro.nombre<<endl;
-        cout<<"codigo: "<<registro.codigo<<endl;
-        cout<<"seccion: "<<registro.seccion<<endl;
+        cout<<"tipo: "<< estudianteStruct.tipo<<endl;
+        cout<<"apellido1: "<<estudianteStruct.apellido1<<endl;
+        cout<<"apellido2: "<<estudianteStruct.apellido2<<endl;
+        cout<<"nombre: "<<estudianteStruct.nombre<<endl;
+        cout<<"codigo: "<<estudianteStruct.codigo<<endl;
+        if(estudianteStruct.tipo  == 0){
+            cout<<"nota: "<<estudianteStruct.nota<<endl;
+        }else if(estudianteStruct.tipo == 1){
+            cout<<"seccion: "<<estudianteStruct.nota<<endl;
+        }
         cout<<"-------------------------------------------"<<endl;
 
-        fread(&registro, sizeof(registroStruct), 1, archivo);
+        fread(&estudianteStruct, sizeof(estudiante), 1, archivo);
     }
 
     fclose(archivo);
